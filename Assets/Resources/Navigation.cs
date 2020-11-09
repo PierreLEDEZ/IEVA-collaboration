@@ -1,0 +1,58 @@
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using Photon.Pun;
+
+namespace WasaaMP {
+    public class Navigation : MonoBehaviourPunCallbacks {
+     
+        #region Public Fields
+
+        // to be able to manage the offset of the camera
+        public Vector3 cameraPositionOffset = new Vector3 (0, 1.6f, 0) ;
+        public float x;
+        public float z;
+        public Quaternion cameraOrientationOffset = new Quaternion () ;
+ 
+        [Tooltip("The local player instance. Use this to know if the local player is represented in the Scene")]
+        public static GameObject LocalPlayerInstance;
+
+        #endregion
+        void Awake () {
+            // #Important
+            // used in GameManager.cs: we keep track of the localPlayer instance to prevent instantiation when levels are synchronized
+            if (photonView.IsMine) {
+                LocalPlayerInstance = this.gameObject;
+            }
+            // #Critical
+            // we flag as don't destroy on load so that instance survives level synchronization, thus giving a seamless experience when levels load.
+            //DontDestroyOnLoad (this.gameObject) ;
+        }
+
+        // Start is called before the first frame update
+        void Start () {
+            if (photonView.IsMine || ! PhotonNetwork.IsConnected) {
+                // attach the camera to the navigation rig
+                Camera theCamera = (Camera)GameObject.FindObjectOfType (typeof(Camera)) ;
+                Transform cameraTransform = theCamera.transform ;
+                cameraTransform.SetParent (transform) ;
+                cameraTransform.localPosition = cameraPositionOffset ;
+                cameraTransform.localRotation = cameraOrientationOffset ;
+            }
+        }
+
+        // Update is called once per frame
+        void Update () {
+            if (photonView.IsMine || ! PhotonNetwork.IsConnected) {
+                //x = Input.GetAxis ("Horizontal") * Time.deltaTime * 150.0f ;
+                x = Input.GetAxis("Horizontal") * Time.deltaTime * 3.0f;
+                var x2 = Input.GetAxis("Horizontal2") * Time.deltaTime * 150.0f;
+                z = Input.GetAxis ("Vertical") * Time.deltaTime * 3.0f ;
+                transform.Rotate (0, x2, 0) ;
+                transform.Translate (x, 0, z) ;      
+            }
+        }
+
+    }
+
+}
